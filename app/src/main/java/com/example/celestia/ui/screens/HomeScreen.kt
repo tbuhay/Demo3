@@ -61,7 +61,7 @@ fun HomeScreen(
                     containerColor = MaterialTheme.colorScheme.background
                 ),
                 actions = {
-                    IconButton(onClick = { /* navController.navigate("settings") */ }) {
+                    IconButton(onClick = { /* TODO: navController.navigate("settings") */ }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_settings),
                             contentDescription = "Settings",
@@ -81,6 +81,8 @@ fun HomeScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+
+            // --- Greeting Header ---
             Text(
                 text = "$greeting, $userName",
                 style = MaterialTheme.typography.titleLarge.copy(
@@ -109,7 +111,7 @@ fun HomeScreen(
                     else -> Triple("Quiet", MaterialTheme.colorScheme.primary, "")
                 }
 
-                // --- KP Index ---
+                // ---------- KP Index ----------
                 CelestiaCard(
                     iconRes = R.drawable.ic_beat,
                     iconTint = CelestiaSkyBlue,
@@ -117,6 +119,7 @@ fun HomeScreen(
                     mainRow = {
                         Text(
                             text = kp.toInt().toString(),
+                            modifier = Modifier.alignByBaseline(),
                             style = MaterialTheme.typography.titleLarge.copy(
                                 fontSize = 26.sp,
                                 fontWeight = FontWeight.Bold,
@@ -130,6 +133,7 @@ fun HomeScreen(
                         )
                         Text(
                             text = status,
+                            modifier = Modifier.alignByBaseline(),
                             style = MaterialTheme.typography.titleMedium.copy(
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                                 fontWeight = FontWeight.Light,
@@ -139,10 +143,10 @@ fun HomeScreen(
                     },
                     description = "Current geomagnetic activity level",
                     shape = cardShape,
-                    onClick = { /* TODO: navController.navigate("kp_index") */ }
+                    onClick = { navController.navigate("kp_index") }
                 )
 
-                // --- ISS Location ---
+                // ---------- ISS Location ----------
                 CelestiaCard(
                     iconRes = R.drawable.ic_space_station,
                     iconTint = CelestiaPurple,
@@ -152,10 +156,13 @@ fun HomeScreen(
                             painter = painterResource(id = R.drawable.ic_map_pin),
                             contentDescription = "Map Pin",
                             tint = CelestiaPurple,
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier
+                                .size(18.dp)
+                                .alignByBaseline()
                         )
                         Text(
                             text = "42.3601° N, 71.0589° W",
+                            modifier = Modifier.alignByBaseline(),
                             style = MaterialTheme.typography.titleMedium.copy(
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
                                 fontWeight = FontWeight.Light,
@@ -165,10 +172,10 @@ fun HomeScreen(
                     },
                     description = "Altitude: 408.5 km | Velocity: 27,580 km/h",
                     shape = cardShape,
-                    onClick = { /* TODO: navController.navigate("iss_location") */ }
+                    onClick = { navController.navigate("iss_location") }
                 )
 
-                // --- Asteroid Tracking ---
+                // ---------- Asteroid Tracking ----------
                 CelestiaCard(
                     iconRes = R.drawable.ic_asteroid,
                     iconTint = CelestiaOrange,
@@ -178,10 +185,13 @@ fun HomeScreen(
                             painter = painterResource(id = R.drawable.ic_calendar),
                             contentDescription = "Asteroid Calendar",
                             tint = CelestiaOrange,
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier
+                                .size(18.dp)
+                                .alignByBaseline()
                         )
                         Text(
                             text = "2024 MK",
+                            modifier = Modifier.alignByBaseline(),
                             style = MaterialTheme.typography.titleMedium.copy(
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
                                 fontWeight = FontWeight.Light,
@@ -191,20 +201,21 @@ fun HomeScreen(
                     },
                     description = "Approach: Nov 21 | 0.015 AU",
                     shape = cardShape,
-                    onClick = { /* TODO: navController.navigate("asteroid_tracking") */ }
+                    onClick = { navController.navigate("asteroid_tracking") }
                 )
             } else {
-                Text("No data loaded yet. Tap Reload to fetch current conditions.")
+                Text(
+                    text = "No data loaded yet. Tap Reload to fetch current conditions.",
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                )
             }
 
             Spacer(Modifier.height(24.dp))
 
-            Button(onClick = { navController.navigate("data") },
-                modifier = Modifier.align(Alignment.CenterHorizontally)) {
-                Text("View All Records")
-            }
-            Button(onClick = { vm.refresh() },
-                modifier = Modifier.align(Alignment.CenterHorizontally)) {
+            Button(
+                onClick = { vm.refresh() },
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            ) {
                 Text("Reload")
             }
         }
@@ -222,6 +233,7 @@ fun CelestiaCard(
     onClick: (() -> Unit)? = null
 ) {
     ElevatedCard(
+        onClick = { onClick?.invoke() },
         modifier = Modifier
             .fillMaxWidth()
             .height(150.dp)
@@ -234,7 +246,10 @@ fun CelestiaCard(
         colors = CardDefaults.elevatedCardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.elevatedCardElevation(
+            defaultElevation = 4.dp,
+            pressedElevation = 8.dp
+        )
     ) {
         Column(
             modifier = Modifier

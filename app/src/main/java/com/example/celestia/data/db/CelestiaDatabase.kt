@@ -19,7 +19,7 @@ abstract class CelestiaDatabase : RoomDatabase() {
                 INSTANCE ?: Room.databaseBuilder(
                     context.applicationContext,
                     CelestiaDatabase::class.java,
-                    "space_weather_db"
+                    "celestia_db"
                 ).build().also { INSTANCE = it }
             }
         }
