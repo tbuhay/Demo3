@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.spaceweathermonitor"
+    namespace = "com.example.celestia"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.spaceweathermonitor"
+        applicationId = "com.example.celestia"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
