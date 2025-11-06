@@ -48,17 +48,22 @@ class CelestiaViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    /** Format NOAA time_tag values like 2025-11-05T18:00:00Z -> Nov 5, 18:00 UTC */
-    fun formatKpTimestamp(raw: String?): String {
-        if (raw.isNullOrBlank()) return "-"
+    fun formatKpTimestamp(utcString: String): String {
         return try {
-            val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
-            parser.timeZone = TimeZone.getTimeZone("UTC")
-            val date = parser.parse(raw)
-            val formatter = SimpleDateFormat("MMM d, HH:mm 'UTC'", Locale.US)
-            formatter.format(date ?: Date())
+            // NOAA format: 2025-11-05T19:59:00
+            val parser = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.US)
+            parser.timeZone = java.util.TimeZone.getTimeZone("UTC")
+
+            val date = parser.parse(utcString)
+            val formatter = java.text.SimpleDateFormat("MMM dd, HH:mm 'UTC'", java.util.Locale.US)
+            formatter.timeZone = java.util.TimeZone.getTimeZone("UTC")
+            formatter.format(date!!)
         } catch (e: Exception) {
-            raw
+            utcString // fallback if parsing fails
         }
+    }
+
+    fun formatKpValue(kp: Double, decimals: Int = 2): String {
+        return String.format(Locale.US, "%.${decimals}f", kp)
     }
 }

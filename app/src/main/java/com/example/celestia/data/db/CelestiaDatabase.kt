@@ -6,7 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.celestia.data.model.KpReading
 
-@Database(entities = [KpReading::class], version = 1, exportSchema = false)
+@Database(entities = [KpReading::class], version = 2, exportSchema = false)
 abstract class CelestiaDatabase : RoomDatabase() {
 
     abstract fun dao(): CelestiaDao
@@ -20,7 +20,9 @@ abstract class CelestiaDatabase : RoomDatabase() {
                     context.applicationContext,
                     CelestiaDatabase::class.java,
                     "celestia_db"
-                ).build().also { INSTANCE = it }
+                )
+                    .fallbackToDestructiveMigration()
+                    .build().also { INSTANCE = it }
             }
         }
     }

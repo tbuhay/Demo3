@@ -14,6 +14,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -47,7 +48,13 @@ fun KpIndexScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Kp Index Overview") },
+                title = { Text(
+                    text = "Kp Index",
+                    style = TextStyle(
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface)
+                ) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
@@ -84,7 +91,7 @@ fun KpIndexScreen(
                     )
                 }
             } else {
-                val kp = latest.kpIndex
+                val kp = latest.estimatedKp
                 val status = when {
                     kp >= 7 -> "Severe Storm"
                     kp >= 5 -> "Active Storm"
@@ -115,7 +122,7 @@ fun KpIndexScreen(
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             Text(
-                                "Current Kp Index $kp",
+                                "Current Kp Index: " + vm.formatKpValue(kp, decimals = 0),
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     color = MaterialTheme.colorScheme.onPrimary,
                                     fontSize = 20.sp,
@@ -185,10 +192,14 @@ fun KpIndexScreen(
                     ) {
                         Text(
                             text = "The Kp Index measures disturbances in Earth's magnetic field caused by solar activity. Higher Kp values mean stronger geomagnetic storms and a greater chance of seeing auroras.",
-                            modifier = Modifier.padding(16.dp),
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .fillMaxWidth(),
                             style = MaterialTheme.typography.bodySmall.copy(
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
-                                textAlign = TextAlign.Center
+                                textAlign = TextAlign.Center,
+                                fontSize = 16.sp,
+                                lineHeight = 18.sp
                             )
                         )
                     }
@@ -231,7 +242,7 @@ fun KpIndexScreen(
                             ) {
                                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                     Text(
-                                        text = reading.kpIndex.toString(),
+                                        text = vm.formatKpValue(kp),
                                         color = colorItem,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 18.sp
@@ -247,7 +258,7 @@ fun KpIndexScreen(
                                     )
                                 }
                                 Text(
-                                    text = reading.timestamp,
+                                    text = " " + vm.formatKpTimestamp(reading.timestamp),
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                                     fontSize = 13.sp
                                 )

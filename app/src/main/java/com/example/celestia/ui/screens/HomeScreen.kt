@@ -103,7 +103,7 @@ fun HomeScreen(
 
             if (readings.isNotEmpty()) {
                 val latest = readings.first()
-                val kp = latest.kpIndex
+                val kp = latest.estimatedKp
                 val (status, _, _) = when {
                     kp >= 7 -> Triple("Severe Storm", MaterialTheme.colorScheme.error, "")
                     kp >= 5 -> Triple("Active Storm", MaterialTheme.colorScheme.tertiary, "")
@@ -118,7 +118,7 @@ fun HomeScreen(
                     title = "KP Index",
                     mainRow = {
                         Text(
-                            text = kp.toInt().toString(),
+                            text = vm.formatKpValue(kp),
                             modifier = Modifier.alignByBaseline(),
                             style = MaterialTheme.typography.titleLarge.copy(
                                 fontSize = 26.sp,
