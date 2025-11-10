@@ -1,6 +1,7 @@
 package com.example.celestia.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -10,6 +11,7 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material3.*
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -18,10 +20,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.celestia.ui.viewmodel.CelestiaViewModel
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.*
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -32,6 +36,7 @@ fun IssLocationScreen(
     vm: CelestiaViewModel
 ) {
     val issReading by vm.issReading.observeAsState()
+    val cardShape = RoundedCornerShape(14.dp)
 
     Scaffold(
         topBar = {
@@ -44,7 +49,10 @@ fun IssLocationScreen(
                             contentDescription = "Back"
                         )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.background
+                )
             )
         }
     ) { padding ->
@@ -58,17 +66,20 @@ fun IssLocationScreen(
 
             // === Main ISS Data Card ===
             ElevatedCard(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(1.dp, Color(0x33FFFFFF), cardShape),
+                shape = cardShape,
                 colors = CardDefaults.elevatedCardColors(
-                    containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
-                )
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp)
             ) {
                 Column(
                     Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
 
-                    // Header
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(
                             modifier = Modifier
@@ -125,7 +136,10 @@ fun IssLocationScreen(
                         )
                         Text(
                             "Updated: ${issReading!!.timestamp}",
-                            color = Color.LightGray
+                            color = Color.LightGray,
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                            )
                         )
                     } else {
                         Text(
@@ -137,53 +151,63 @@ fun IssLocationScreen(
                 }
             }
 
-            // === Map / Orbit Placeholder ===
-            ElevatedCard(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp),
-                colors = CardDefaults.elevatedCardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
-                )
-            ) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Box(
-                            modifier = Modifier
-                                .size(76.dp)
-                                .clip(CircleShape)
-                                .background(
-                                    MaterialTheme.colorScheme.outline.copy(alpha = 0.25f)
-                                ),
-                            contentAlignment = Alignment.Center
+            // === Map View ===
+            val issPosition = issReading?.let { LatLng(it.latitude, it.longitude) }
+
+            if (issPosition != null) {
+                val cameraPositionState = rememberCameraPositionState {
+                    position = CameraPosition.fromLatLngZoom(issPosition, 4.5f)
+                }
+
+                ElevatedCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp),
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+                    )
+                ) {
+                    Box(Modifier.fillMaxSize()) {
+                        GoogleMap(
+                            modifier = Modifier.fillMaxSize(),
+                            cameraPositionState = cameraPositionState
                         ) {
-                            Icon(
-                                Icons.Default.Public,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.outline
+                            Marker(
+                                state = MarkerState(position = issPosition),
+                                title = "ISS",
+                                snippet = "Lat: ${"%.2f".format(issReading!!.latitude)}, " +
+                                        "Lon: ${"%.2f".format(issReading!!.longitude)}"
                             )
                         }
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            "Interactive Map Visualization",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Text(
-                            "Real-time tracking coming soon",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = Color.Gray,
-                            textAlign = TextAlign.Center
-                        )
+                    }
+                }
+            } else {
+                ElevatedCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp),
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+                    )
+                ) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("Loading ISS location...", color = Color.Gray)
                     }
                 }
             }
 
-            // === New Info Card (Launch + Mass) ===
+            // === Info Card ===
             ElevatedCard(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(
+                        width = 1.dp,
+                        color = Color(0x33FFFFFF),
+                        shape = RoundedCornerShape(14.dp)
+                    ),
+                shape = RoundedCornerShape(14.dp),
                 colors = CardDefaults.elevatedCardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)
+                    containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
                 )
             ) {
                 Column(
@@ -200,7 +224,6 @@ fun IssLocationScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        // Mini-card 1: Mass
                         Surface(
                             modifier = Modifier
                                 .weight(1f)
@@ -217,7 +240,6 @@ fun IssLocationScreen(
                             }
                         }
 
-                        // Mini-card 2: Launch Date
                         Surface(
                             modifier = Modifier
                                 .weight(1f)
