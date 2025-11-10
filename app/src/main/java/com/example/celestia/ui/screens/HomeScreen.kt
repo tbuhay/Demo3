@@ -25,7 +25,7 @@ import com.example.celestia.ui.viewmodel.CelestiaViewModel
 @Composable
 fun HomeScreen(
     navController: NavController,
-    vm: CelestiaViewModel = viewModel()
+    vm: CelestiaViewModel
 ) {
     val readings by vm.readings.observeAsState(emptyList())
     val cardShape = RoundedCornerShape(14.dp)
@@ -147,6 +147,8 @@ fun HomeScreen(
                 )
 
                 // ---------- ISS Location ----------
+                val issReading by vm.issReading.observeAsState()
+
                 CelestiaCard(
                     iconRes = R.drawable.ic_space_station,
                     iconTint = CelestiaPurple,
@@ -156,12 +158,12 @@ fun HomeScreen(
                             painter = painterResource(id = R.drawable.ic_map_pin),
                             contentDescription = "Map Pin",
                             tint = CelestiaPurple,
-                            modifier = Modifier
-                                .size(18.dp)
-                                .alignByBaseline()
+                            modifier = Modifier.size(18.dp).alignByBaseline()
                         )
                         Text(
-                            text = "42.3601° N, 71.0589° W",
+                            text = issReading?.let {
+                                "${formatCoord(it.latitude, 'N', 'S')}, ${formatCoord(it.longitude, 'E', 'W')}"
+                            } ?: "--° N, --° W",
                             modifier = Modifier.alignByBaseline(),
                             style = MaterialTheme.typography.titleMedium.copy(
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
@@ -170,7 +172,9 @@ fun HomeScreen(
                             )
                         )
                     },
-                    description = "Altitude: 408.5 km | Velocity: 27,580 km/h",
+                    description = issReading?.let {
+                        "Altitude: ${formatNumber(it.altitude)} km | Velocity: ${formatNumber(it.velocity)} km/h"
+                    } ?: "Altitude: -- km | Velocity: -- km/h",
                     shape = cardShape,
                     onClick = { navController.navigate("iss_location") }
                 )

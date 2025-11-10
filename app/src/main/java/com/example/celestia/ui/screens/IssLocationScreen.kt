@@ -6,12 +6,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -20,65 +20,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.celestia.ui.viewmodel.CelestiaViewModel
 import kotlin.math.abs
 import kotlin.math.roundToInt
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
-
-// --- simple UI state to keep this self-contained for now ---
-data class IssUiState(
-    val latitude: Double = 0.0,
-    val longitude: Double = 0.0,
-    val altitudeKm: Double = 0.0,
-    val velocityKmh: Double = 0.0,
-    val crewCount: Int = 7, // placeholder
-    val updated: String = "--:--"
-)
-
-class IssViewModel : ViewModel() {
-    // placeholder values (so the UI looks “real” before wiring an API)
-    var ui by mutableStateOf(
-        IssUiState(
-            latitude = 42.3601,
-            longitude = -71.0589,
-            altitudeKm = 408.5,
-            velocityKmh = 27580.0,
-            crewCount = 7,
-            updated = ZonedDateTime.now().format(DateTimeFormatter.ofPattern("MMM d, HH:mm"))
-        )
-    )
-        private set
-
-    // call this later from a repository using an ISS API
-    fun refreshWith(
-        lat: Double,
-        lon: Double,
-        altKm: Double,
-        velKmh: Double,
-        crew: Int?,
-        updatedText: String
-    ) {
-        ui = ui.copy(
-            latitude = lat,
-            longitude = lon,
-            altitudeKm = altKm,
-            velocityKmh = velKmh,
-            crewCount = crew ?: ui.crewCount,
-            updated = updatedText
-        )
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun IssLocationScreen(
     navController: NavController,
-    vm: IssViewModel = viewModel()
+    vm: CelestiaViewModel
 ) {
-    val ui = vm.ui
+    val issReading by vm.issReading.observeAsState()
 
     Scaffold(
         topBar = {
@@ -103,7 +56,7 @@ fun IssLocationScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
-            // === Main ISS data card ===
+            // === Main ISS Data Card ===
             ElevatedCard(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.elevatedCardColors(
@@ -153,34 +106,34 @@ fun IssLocationScreen(
 
                     HorizontalDivider(Modifier.padding(vertical = 8.dp))
 
-                    StatRow(
-                        icon = Icons.Default.LocationOn,
-                        label = "Coordinates",
-                        value = "${formatCoord(ui.latitude, 'N', 'S')}, " +
-                                "${formatCoord(ui.longitude, 'E', 'W')}"
-                    )
-                    StatRow(
-                        icon = Icons.Default.Public,
-                        label = "Altitude",
-                        value = "${formatNumber(ui.altitudeKm)} km"
-                    )
-                    StatRow(
-                        icon = Icons.Default.Speed,
-                        label = "Velocity",
-                        value = "${formatNumber(ui.velocityKmh)} km/h"
-                    )
-                    StatRow(
-                        icon = Icons.Default.Public,
-                        label = "Current Crew",
-                        value = "${ui.crewCount} astronaut${if (ui.crewCount == 1) "" else "s"}"
-                    )
-
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        text = "Updated: ${ui.updated}",
-                        color = Color.LightGray,
-                        style = MaterialTheme.typography.labelMedium
-                    )
+                    if (issReading != null) {
+                        StatRow(
+                            icon = Icons.Default.LocationOn,
+                            label = "Coordinates",
+                            value = "${formatCoord(issReading!!.latitude, 'N', 'S')}, " +
+                                    "${formatCoord(issReading!!.longitude, 'E', 'W')}"
+                        )
+                        StatRow(
+                            icon = Icons.Default.Public,
+                            label = "Altitude",
+                            value = "${formatNumber(issReading!!.altitude)} km"
+                        )
+                        StatRow(
+                            icon = Icons.Default.Speed,
+                            label = "Velocity",
+                            value = "${formatNumber(issReading!!.velocity)} km/h"
+                        )
+                        Text(
+                            "Updated: ${issReading!!.timestamp}",
+                            color = Color.LightGray
+                        )
+                    } else {
+                        Text(
+                            text = "No ISS data available yet.",
+                            color = Color.Gray,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
                 }
             }
 
@@ -287,7 +240,6 @@ fun IssLocationScreen(
     }
 }
 
-
 @Composable
 private fun StatRow(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, value: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -300,14 +252,13 @@ private fun StatRow(icon: androidx.compose.ui.graphics.vector.ImageVector, label
     }
 }
 
-private fun formatCoord(deg: Double, pos: Char, neg: Char): String {
+fun formatCoord(deg: Double, pos: Char, neg: Char): String {
     val hemi = if (deg >= 0) pos else neg
     val absDeg = abs(deg)
     return "${"%.4f".format(absDeg)}° $hemi"
 }
 
-private fun formatNumber(n: Double): String {
-    // 27,580 -> with thousands separators, keep one decimal if needed
+fun formatNumber(n: Double): String {
     val rounded = if ((n * 10).roundToInt() % 10 == 0) n.toInt().toString() else "%.1f".format(n)
     val parts = rounded.split(".")
     val intPart = parts[0]

@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -25,9 +26,9 @@ class MainActivity : ComponentActivity() {
                     navController = navController,
                     startDestination = "home"
                 ) {
-                    composable("home") { HomeScreen(navController) }
-                    composable("kp_index") { KpIndexScreen(navController) }
-                    composable("iss_location") { IssLocationScreen(navController) }
+                    composable("home") { HomeScreen(navController, viewModel()) }
+                    composable("kp_index") { KpIndexScreen(navController, viewModel()) }
+                    composable("iss_location") { IssLocationScreen(navController, viewModel()) }
                     composable("asteroid_tracking") { AsteroidTrackingScreen(navController) }
                 }
             }

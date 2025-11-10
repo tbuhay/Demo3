@@ -4,13 +4,22 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitInstance {
-    private const val BASE_URL = "https://services.swpc.noaa.gov/json/"
+    private const val NOAA_BASE_URL = "https://services.swpc.noaa.gov/json/"
+    private const val ISS_BASE_URL = "https://api.wheretheiss.at/"
 
-    val api: CelestiaApi by lazy {
+    val noaaApi: NoaaApi by lazy {
         Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(NOAA_BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-            .create(CelestiaApi::class.java)
+            .create(NoaaApi::class.java)
+    }
+
+    val issApi: IssApi by lazy {
+        Retrofit.Builder()
+            .baseUrl(ISS_BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(IssApi::class.java)
     }
 }

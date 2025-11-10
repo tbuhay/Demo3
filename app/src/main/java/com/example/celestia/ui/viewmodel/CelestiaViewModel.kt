@@ -1,15 +1,11 @@
 package com.example.celestia.ui.viewmodel
 
 import android.app.Application
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.asLiveData
-import androidx.lifecycle.viewModelScope
+import android.util.Log
+import androidx.lifecycle.*
 import com.example.celestia.data.db.CelestiaDatabase
 import com.example.celestia.data.repository.CelestiaRepository
 import kotlinx.coroutines.launch
-import android.os.Build
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -19,47 +15,83 @@ class CelestiaViewModel(application: Application) : AndroidViewModel(application
     private val repo = CelestiaRepository(dao)
     private val prefs = application.getSharedPreferences("celestia_prefs", 0)
 
+    // --- NOAA: Kp Index ---
     val readings = repo.readings.asLiveData()
-
     private val _lastUpdated = MutableLiveData<String>()
     val lastUpdated: LiveData<String> = _lastUpdated
 
+    // --- ISS: Live Position (persisted in Room) ---
+    val issReading = repo.issReading.asLiveData()
+
     init {
-        // Load persisted time from SharedPreferences
         _lastUpdated.value = prefs.getString("last_updated", "Never")
     }
 
-    /** Refresh NOAA data and persist timestamp */
+    /** Utility for UTC time */
+    private fun currentUtcTime(): String {
+        val sdf = SimpleDateFormat("MMM d, HH:mm 'UTC'", Locale.US)
+        sdf.timeZone = TimeZone.getTimeZone("UTC")
+        return sdf.format(Date())
+    }
+
+    /** Refresh both NOAA + ISS data */
     fun refresh() {
         viewModelScope.launch {
-            repo.refreshData()
+            try {
+                // --- NOAA ---
+                launch {
+                    try {
+                        repo.refreshData()
+                        Log.d("CelestiaVM", "NOAA data refreshed")
+                    } catch (e: Exception) {
+                        Log.e("CelestiaVM", "NOAA refresh failed", e)
+                    }
+                }
 
-            val formattedTime = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                val now = java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC)
-                val formatter = java.time.format.DateTimeFormatter.ofPattern("MMM d, HH:mm 'UTC'")
-                now.format(formatter)
-            } else {
-                val sdf = SimpleDateFormat("MMM d, HH:mm 'UTC'", Locale.US)
-                sdf.format(Date())
+                // --- ISS ---
+                launch {
+                    try {
+                        repo.refreshIssData()
+                        Log.d("CelestiaVM", "ISS data refreshed via repository")
+                    } catch (e: Exception) {
+                        Log.e("CelestiaVM", "ISS refresh failed", e)
+                    }
+                }
+
+                // --- Shared timestamp (applied last) ---
+                val formattedTime = currentUtcTime()
+                prefs.edit().putString("last_updated", formattedTime).apply()
+                _lastUpdated.postValue(formattedTime)
+
+            } catch (e: Exception) {
+                Log.e("CelestiaVM", "Error during refresh()", e)
             }
-
-            prefs.edit().putString("last_updated", formattedTime).apply()
-            _lastUpdated.postValue(formattedTime)
         }
     }
 
+    /** Refresh ISS only */
+    fun refreshIssData() {
+        viewModelScope.launch {
+            try {
+                repo.refreshIssData()
+                Log.d("CelestiaVM", "ISS data refreshed (manual call)")
+            } catch (e: Exception) {
+                Log.e("CelestiaVM", "refreshIssData failed", e)
+            }
+        }
+    }
+
+    /** NOAA formatting helpers */
     fun formatKpTimestamp(utcString: String): String {
         return try {
-            // NOAA format: 2025-11-05T19:59:00
-            val parser = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.US)
-            parser.timeZone = java.util.TimeZone.getTimeZone("UTC")
-
+            val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
+            parser.timeZone = TimeZone.getTimeZone("UTC")
             val date = parser.parse(utcString)
-            val formatter = java.text.SimpleDateFormat("MMM dd, HH:mm 'UTC'", java.util.Locale.US)
-            formatter.timeZone = java.util.TimeZone.getTimeZone("UTC")
+            val formatter = SimpleDateFormat("MMM dd, HH:mm 'UTC'", Locale.US)
+            formatter.timeZone = TimeZone.getTimeZone("UTC")
             formatter.format(date!!)
         } catch (e: Exception) {
-            utcString // fallback if parsing fails
+            utcString
         }
     }
 
