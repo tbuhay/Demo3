@@ -207,7 +207,7 @@ fun IssLocationScreen(
                     ),
                 shape = RoundedCornerShape(14.dp),
                 colors = CardDefaults.elevatedCardColors(
-                    containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
             ) {
                 Column(
@@ -226,6 +226,11 @@ fun IssLocationScreen(
                     ) {
                         Surface(
                             modifier = Modifier
+                                .border(
+                                    width = 1.dp,
+                                    color = Color(0x33FFFFFF),
+                                    shape = RoundedCornerShape(14.dp)
+                                )
                                 .weight(1f)
                                 .clip(RoundedCornerShape(16.dp)),
                             tonalElevation = 3.dp,
@@ -235,13 +240,18 @@ fun IssLocationScreen(
                                 Modifier.padding(12.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Text("Mass", color = Color.Gray, style = MaterialTheme.typography.labelSmall)
+                                Text("Mass", color = Color.White, style = MaterialTheme.typography.labelSmall)
                                 Text("420,000 kg", style = MaterialTheme.typography.titleMedium)
                             }
                         }
 
                         Surface(
                             modifier = Modifier
+                                .border(
+                                    width = 1.dp,
+                                    color = Color(0x33FFFFFF),
+                                    shape = RoundedCornerShape(14.dp)
+                                )
                                 .weight(1f)
                                 .clip(RoundedCornerShape(16.dp)),
                             tonalElevation = 3.dp,
@@ -251,7 +261,7 @@ fun IssLocationScreen(
                                 Modifier.padding(12.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Text("Launch Date", color = Color.Gray, style = MaterialTheme.typography.labelSmall)
+                                Text("Launch Date", color = Color.White, style = MaterialTheme.typography.labelSmall)
                                 Text("Nov 20, 1998", style = MaterialTheme.typography.titleMedium)
                             }
                         }

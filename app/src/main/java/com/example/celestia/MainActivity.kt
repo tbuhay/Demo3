@@ -12,20 +12,30 @@ import com.example.celestia.ui.screens.AsteroidTrackingScreen
 import com.example.celestia.ui.screens.HomeScreen
 import com.example.celestia.ui.screens.IssLocationScreen
 import com.example.celestia.ui.screens.KpIndexScreen
+import com.example.celestia.ui.screens.LoginScreen
+import com.example.celestia.ui.screens.RegisterScreen
 import com.example.celestia.ui.theme.CelestiaTheme
+import com.google.firebase.FirebaseApp
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        FirebaseApp.initializeApp(this)
         enableEdgeToEdge()
         setContent {
             CelestiaTheme {
                 val navController = rememberNavController()
+                val isUserLoggedIn = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser != null
 
                 NavHost(
                     navController = navController,
-                    startDestination = "home"
+                    startDestination = if (isUserLoggedIn) "home" else "login"
                 ) {
+                    // 🔹 Auth Screens
+                    composable("login") { LoginScreen(navController) }
+                    composable("register") { RegisterScreen(navController) }
+
+                    // 🔹 Main App Screens
                     composable("home") { HomeScreen(navController, viewModel()) }
                     composable("kp_index") { KpIndexScreen(navController, viewModel()) }
                     composable("iss_location") { IssLocationScreen(navController, viewModel()) }

@@ -20,6 +20,7 @@ import androidx.navigation.NavController
 import com.example.celestia.R
 import com.example.celestia.ui.theme.*
 import com.example.celestia.ui.viewmodel.CelestiaViewModel
+import com.google.firebase.auth.FirebaseAuth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,8 +31,8 @@ fun HomeScreen(
     val readings by vm.readings.observeAsState(emptyList())
     val cardShape = RoundedCornerShape(14.dp)
 
-    // --- Hardcoded name for now ---
-    val userName = "Tyler"
+    val user = FirebaseAuth.getInstance().currentUser
+    val userName = user?.displayName ?: "Explorer"
 
     // --- Dynamic greeting based on time ---
     val greeting = remember {
@@ -65,6 +66,19 @@ fun HomeScreen(
                         Icon(
                             painter = painterResource(id = R.drawable.ic_settings),
                             contentDescription = "Settings",
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
+                    IconButton(onClick = {
+                        FirebaseAuth.getInstance().signOut()
+                        navController.navigate("login") {
+                            popUpTo("home") { inclusive = true }
+                        }
+                    }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_logout),
+                            contentDescription = "Logout",
                             tint = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.size(28.dp)
                         )

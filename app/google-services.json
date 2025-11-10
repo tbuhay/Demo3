@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "521148102703",
+    "project_id": "celestia-77d2a",
+    "storage_bucket": "celestia-77d2a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:521148102703:android:f5311796a7da8ab8d02eda",
+        "android_client_info": {
+          "package_name": "com.example.celestia"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA-SNYNVY-5oc7znI16A8EJ0jlfBOUdBYo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
